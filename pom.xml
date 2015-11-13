@@ -141,6 +141,13 @@ limitations under the License.
     </dependency>
 
     <dependency>
+      <groupId>org.eclipse.jgit</groupId>
+      <artifactId>org.eclipse.jgit.junit</artifactId>
+      <version>3.7.1.201504261725-r</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.jvnet.jaxb2_commons</groupId>
       <artifactId>jaxb2-basics-runtime</artifactId>
       <version>${jaxb2-basics-runtime.version}</version>
