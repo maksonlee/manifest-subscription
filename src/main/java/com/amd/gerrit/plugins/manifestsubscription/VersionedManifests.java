@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class VersionedManifests extends VersionedMetaData implements ManifestProvider {
   private String refName;
@@ -48,6 +49,10 @@ public class VersionedManifests extends VersionedMetaData implements ManifestPro
 
   public void setManifests(Map<String, Manifest> manifests) {
     this.manifests = manifests;
+  }
+
+  public Set<String> getManifestPaths() {
+    return manifests.keySet();
   }
 
   public Map<String, Manifest> getManifests() {
@@ -88,6 +93,11 @@ public class VersionedManifests extends VersionedMetaData implements ManifestPro
     Manifest manifest;
 
     RevWalk rw = new RevWalk(reader);
+
+    // This happens when someone configured a invalid branch name
+    if (getRevision() == null) {
+      throw new ConfigInvalidException(refName);
+    }
     RevCommit r = rw.parseCommit(getRevision());
     TreeWalk treewalk = new TreeWalk(reader);
     treewalk.addTree(r.getTree());

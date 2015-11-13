@@ -46,6 +46,19 @@ public class VersionedManifestsTest extends LocalDiskRepositoryTestCase {
     db = createBareRepository();
     util = new TestRepository<>(db);
   }
+  @Test
+  public void testVersionedManifestsReadFromNonManifestGit() throws Exception {
+    RevCommit rev = util.commit(util.tree(
+        util.file("nonxml.txt",
+            util.blob(IOUtils.toByteArray(
+                getClass().getResourceAsStream("/nonxml.txt"))))
+    ));
+
+    VersionedManifests versionedManifests =
+        new VersionedManifests("master");
+
+    versionedManifests.load(db, rev);
+  }
 
   @Test
   public void testVersionedManifestsReadFromGit() throws Exception {
