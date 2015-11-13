@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+
+  <project path="git/test/project4" name="demo/git/test/project4" groups="demo" revision="master" />
+  <project path="git/test/project5" name="demo/git/test/project5" />
+  <project path="git/test/project6" name="demo/git/test/project6" revision="master" />
+
+</manifest>

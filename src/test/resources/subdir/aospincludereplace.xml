@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+
+  <include name="../aospinclude.xml" />
+  <include name="testonly1.xml" />
+
+  <remove-project name="demo/git/test/project4"/>
+  <project path="git/test/project4" name="demo/git/test/project4" revision="replaced" />
+  <remove-project name="demo/git/test/project5"/>
+  <project path="git/test/project5" name="demo/git/test/project5" revision="replaced" />
+  <remove-project name="demo/git/test/project6"/>
+  <project path="git/test/project6" name="demo/git/test/project6" revision="replaced" />
+
+</manifest>

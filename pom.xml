@@ -68,6 +68,26 @@ limitations under the License.
           <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
+
+      <!-- create uber jar-->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.4.2</version>
+        <configuration>
+          <minimizeJar>true</minimizeJar>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+
       <!--  For code gen: DTD to Java class with JAXB -->
       <!--  http://confluence.highsource.org/display/J2B/User+Guide -->
       <plugin>
@@ -111,6 +131,13 @@ limitations under the License.
       <artifactId>gerrit-${Gerrit-ApiType}-api</artifactId>
       <version>${Gerrit-ApiVersion}</version>
       <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.truth</groupId>
+      <artifactId>truth</artifactId>
+      <version>0.27</version>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
