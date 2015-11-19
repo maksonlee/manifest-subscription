@@ -19,7 +19,7 @@ limitations under the License.
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.amd.gerrit.plugins.manifestsubscription</groupId>
-  <artifactId>manifestsubscription</artifactId>
+  <artifactId>manifest-subscription</artifactId>
   <packaging>jar</packaging>
   <version>2.9.1</version>
   <name>manifestSubscription</name>
