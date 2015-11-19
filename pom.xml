@@ -41,15 +41,23 @@ limitations under the License.
           <archive>
             <manifestEntries>
               <Gerrit-PluginName>manifest-subscription</Gerrit-PluginName>
-              <Gerrit-Module>com.amd.gerrit.plugins.manifestsubscription.Module</Gerrit-Module>
-              <Gerrit-SshModule>com.amd.gerrit.plugins.manifestsubscription.SshModule</Gerrit-SshModule>
-              <Gerrit-HttpModule>com.amd.gerrit.plugins.manifestsubscription.HttpModule</Gerrit-HttpModule>
+              <Gerrit-Module>
+                com.amd.gerrit.plugins.manifestsubscription.Module
+              </Gerrit-Module>
+              <Gerrit-SshModule>
+                com.amd.gerrit.plugins.manifestsubscription.SshModule
+              </Gerrit-SshModule>
+              <Gerrit-HttpModule>
+                com.amd.gerrit.plugins.manifestsubscription.HttpModule
+              </Gerrit-HttpModule>
 
-              <Implementation-Title>Manifest Subscription plugin</Implementation-Title>
+              <Implementation-Title>Manifest Subscription plugin
+              </Implementation-Title>
               <Implementation-Vendor>AMD</Implementation-Vendor>
               <Implementation-URL>http://www.amd.com/</Implementation-URL>
 
-              <Implementation-Version>${project.version}</Implementation-Version>
+              <Implementation-Version>${project.version}
+              </Implementation-Version>
 
               <Gerrit-ApiType>${Gerrit-ApiType}</Gerrit-ApiType>
               <Gerrit-ApiVersion>${Gerrit-ApiVersion}</Gerrit-ApiVersion>
@@ -67,6 +75,48 @@ limitations under the License.
           <target>1.7</target>
           <encoding>UTF-8</encoding>
         </configuration>
+      </plugin>
+
+      <!-- Generate code coverage report-->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.7.5.201505241946</version>
+        <executions>
+          <execution>
+            <id>default-prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>default-report</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>default-check</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <rule>
+                  <element>BUNDLE</element>
+                  <limits>
+                    <limit>
+                      <counter>COMPLEXITY</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.60</minimum>
+                    </limit>
+                  </limits>
+                </rule>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
       <!-- Use git-describe for version -->
@@ -130,7 +180,9 @@ limitations under the License.
           <schemaIncludes>
             <schemaInclude>*.dtd</schemaInclude>
           </schemaIncludes>
-          <generatePackage>com.amd.gerrit.plugins.manifestsubscription.manifest</generatePackage>
+          <generatePackage>
+            com.amd.gerrit.plugins.manifestsubscription.manifest
+          </generatePackage>
           <args>
             <arg>-XtoString</arg>
             <arg>-Xequals</arg>
