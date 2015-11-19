@@ -29,6 +29,11 @@ limitations under the License.
     <Gerrit-ApiVersion>2.9.1</Gerrit-ApiVersion>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jaxb2-basics-runtime.version>0.6.4</jaxb2-basics-runtime.version>
+    <jacoco.version>0.7.5.201505241946</jacoco.version>
+    <gitdescribe-maven-plugin.version>3.0</gitdescribe-maven-plugin.version>
+    <maven-jaxb2-plugin.version>0.7.0</maven-jaxb2-plugin.version>
+    <truth.version>0.27</truth.version>
+    <jgit.junit.version>3.7.1.201504261725-r</jgit.junit.version>
   </properties>
 
   <build>
@@ -81,7 +86,7 @@ limitations under the License.
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.7.5.201505241946</version>
+        <version>${jacoco.version}</version>
         <executions>
           <execution>
             <id>default-prepare-agent</id>
@@ -123,7 +128,7 @@ limitations under the License.
       <plugin>
         <groupId>com.lukegb.mojo</groupId>
         <artifactId>gitdescribe-maven-plugin</artifactId>
-        <version>3.0</version>
+        <version>${gitdescribe-maven-plugin.version}</version>
         <executions>
           <execution>
             <goals>
@@ -166,7 +171,7 @@ limitations under the License.
       <plugin>
         <groupId>org.jvnet.jaxb2.maven2</groupId>
         <artifactId>maven-jaxb2-plugin</artifactId>
-        <version>0.7.0</version>
+        <version>${maven-jaxb2-plugin.version}</version>
         <executions>
           <execution>
             <goals>
@@ -211,14 +216,14 @@ limitations under the License.
     <dependency>
       <groupId>com.google.truth</groupId>
       <artifactId>truth</artifactId>
-      <version>0.27</version>
+      <version>${truth.version}</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit.junit</artifactId>
-      <version>3.7.1.201504261725-r</version>
+      <version>${jgit.junit.version}</version>
       <scope>test</scope>
     </dependency>
 
