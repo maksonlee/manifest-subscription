@@ -46,6 +46,19 @@ public class VersionedManifests extends VersionedMetaData implements ManifestPro
   private Unmarshaller manifestUnmarshaller;
   private Marshaller manifestMarshaller;
   private Map<String, Manifest> manifests;
+  private String srcManifestRepo = "";
+
+  public String getSrcManifestRepo() {
+    return srcManifestRepo;
+  }
+
+  public void setSrcManifestRepo(String srcManifestRepo) {
+    this.srcManifestRepo = srcManifestRepo;
+  }
+
+  public Map<String, Manifest> getManifests() {
+    return Collections.unmodifiableMap(manifests);
+  }
 
   public void setManifests(Map<String, Manifest> manifests) {
     this.manifests = manifests;
@@ -53,10 +66,6 @@ public class VersionedManifests extends VersionedMetaData implements ManifestPro
 
   public Set<String> getManifestPaths() {
     return manifests.keySet();
-  }
-
-  public Map<String, Manifest> getManifests() {
-    return Collections.unmodifiableMap(manifests);
   }
 
   private VersionedManifests() throws JAXBException {
@@ -129,7 +138,8 @@ public class VersionedManifests extends VersionedMetaData implements ManifestPro
   @Override
   protected boolean onSave(CommitBuilder commit) throws IOException {
     StringBuilder commitMsg = new StringBuilder();
-    commitMsg.append("Updated manifest\n\n");
+    commitMsg.append("Snapshot manifest from " +
+        srcManifestRepo + " updated\n\n");
 
     String path;
     Manifest manifest;
@@ -241,5 +251,4 @@ public class VersionedManifests extends VersionedMetaData implements ManifestPro
       }
     }
   }
-
 }

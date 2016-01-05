@@ -64,6 +64,12 @@ public class ManifestSubscription implements
   private Table<String, String, Manifest> manifestStores = HashBasedTable.create();
 
   /**
+   * manifest source lookup
+   * repo name, branch (branchPath), manifest source repo
+   */
+  private Table<String, String, String> manifestSource = HashBasedTable.create();
+
+  /**
    * lookup
    * subscribed project name and branch, manifest dest store, <manifest dest branch Project>
    **/
@@ -127,6 +133,8 @@ public class ManifestSubscription implements
       processManifestChange(event, projectName, branchName);
 
     } else if (subscribedRepos.containsRow(pbKey)) {
+      //updates in subscribed repos
+
       // Manifest store and branch
       Map<String, Map<String, Set<
           com.amd.gerrit.plugins.manifestsubscription.manifest.Project>>>
@@ -138,6 +146,7 @@ public class ManifestSubscription implements
               = destinations.get(store).get(storeBranch);
 
           Manifest manifest = manifestStores.get(store, storeBranch);
+          String manifestSrc = manifestSource.get(store, storeBranch);
           // these are project from the above manifest previously
           // cached in the lookup table
           for (com.amd.gerrit.plugins.manifestsubscription.manifest.Project
@@ -146,7 +155,8 @@ public class ManifestSubscription implements
           }
 
           try {
-            updateManifest(store, STORE_BRANCH_PREFIX + storeBranch, manifest);
+            updateManifest(store, STORE_BRANCH_PREFIX + storeBranch,
+                           manifest, manifestSrc);
           } catch (JAXBException | IOException e) {
             e.printStackTrace();
           }
@@ -154,7 +164,6 @@ public class ManifestSubscription implements
         }
       }
 
-      //updates in subscribed repos
     }
 
 
@@ -221,6 +230,7 @@ public class ManifestSubscription implements
               if (branchPath.startsWith(branchName)) {
                 iter.remove();
                 manifestStores.remove(store, branchPath);
+                manifestSource.remove(store, branchPath);
               }
             }
           }
@@ -237,11 +247,12 @@ public class ManifestSubscription implements
 
             VersionedManifests.affixManifest(gitRepoManager, manifest, lookup);
 
-            watchCanonicalManifest(manifest, store, bp);
+            watchCanonicalManifest(manifest, store, bp, projectName);
             //save manifest
             //TODO added the m/ to the ref to to work around LOCK_FAILURE error of creating master/bla/bla
             //TODO (because default master ref already exists) better solution?
-            updateManifest(store, STORE_BRANCH_PREFIX + bp, manifest);
+            updateManifest(store, STORE_BRANCH_PREFIX + bp,
+                           manifest, projectName);
 
           } catch (ManifestReadException e) {
             e.printStackTrace();
@@ -257,7 +268,7 @@ public class ManifestSubscription implements
   }
 
   private void watchCanonicalManifest(Manifest manifest, String store,
-                                      String branchPath) {
+                                      String branchPath, String manifestSrc) {
     String defaultBranch;
     if (manifest.getDefault() != null &&
         manifest.getDefault().getRevision() != null) {
@@ -267,6 +278,7 @@ public class ManifestSubscription implements
     }
 
     manifestStores.put(store, branchPath, manifest);
+    manifestSource.put(store, branchPath, manifestSrc);
 
     List<com.amd.gerrit.plugins.manifestsubscription.manifest.Project> projects
         = manifest.getProject();
@@ -335,6 +347,7 @@ public class ManifestSubscription implements
         if (oldStore != null && !oldStore.isEmpty()) {
           //TODO FIX assume unique store for each manifest source (1-1 map)
           manifestStores.row(oldStore).clear();
+          manifestSource.row(oldStore).clear();
           enabledManifestSource.remove(event.getProjectName());
 
           Iterator<Table.Cell<ProjectBranchKey, String, Map<String,
@@ -411,7 +424,7 @@ public class ManifestSubscription implements
   }
 
   private void updateManifest(String projectName, String refName,
-                              Manifest manifest)
+                              Manifest manifest, String manifestSrc)
       throws JAXBException, IOException {
     Project.NameKey p = new Project.NameKey(projectName);
     MetaDataUpdate update = metaDataUpdateFactory.create(p);
@@ -429,6 +442,7 @@ public class ManifestSubscription implements
       Map<String, Manifest> entry = Maps.newHashMapWithExpectedSize(1);
       entry.put("default.xml", manifest);
       vManifests.setManifests(entry);
+      vManifests.setSrcManifestRepo(manifestSrc);
       vManifests.commit(update);
     } else {
       vManifests = new VersionedManifests("master");
