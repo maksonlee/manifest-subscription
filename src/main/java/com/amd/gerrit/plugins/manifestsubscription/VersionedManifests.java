@@ -23,6 +23,7 @@ import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.git.VersionedMetaData;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.CommitBuilder;
+import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -36,10 +37,7 @@ import javax.xml.bind.Unmarshaller;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class VersionedManifests extends VersionedMetaData implements ManifestProvider {
   private String refName;
@@ -166,6 +164,12 @@ public class VersionedManifests extends VersionedMetaData implements ManifestPro
         throw new IOException(e);
       }
     }
+
+    // For some reason the default author and committer date is
+    // invalid (always the same date and time)
+    Date date = new Date();
+    commit.setAuthor(new PersonIdent(commit.getAuthor(), date));
+    commit.setCommitter(new PersonIdent(commit.getCommitter(), date));
 
     if (commit.getMessage() == null || "".equals(commit.getMessage())) {
       commit.setMessage(commitMsg.toString());
