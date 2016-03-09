@@ -16,10 +16,13 @@ package com.amd.gerrit.plugins.manifestsubscription;
 
 import com.amd.gerrit.plugins.manifestsubscription.manifest.Manifest;
 import com.google.common.collect.*;
+import com.google.gerrit.common.ChangeHooks;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.events.GitReferenceUpdatedListener;
 import com.google.gerrit.extensions.events.LifecycleListener;
+import com.google.gerrit.reviewdb.client.Branch;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.server.account.AccountCache;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.git.MetaDataUpdate;
 import com.google.gerrit.server.git.ProjectConfig;
@@ -52,6 +55,8 @@ public class ManifestSubscription implements
   private final MetaDataUpdate.Server metaDataUpdateFactory;
   private final GitRepositoryManager gitRepoManager;
   private final ProjectCache projectCache;
+  private final ChangeHooks changeHooks;
+
 
   /**
    * source project lookup
@@ -111,11 +116,13 @@ public class ManifestSubscription implements
   ManifestSubscription(MetaDataUpdate.Server metaDataUpdateFactory,
                        GitRepositoryManager gitRepoManager,
                        @PluginName String pluginName,
-                       ProjectCache projectCache) {
+                       ProjectCache projectCache,
+                       ChangeHooks changeHooks) {
     this.metaDataUpdateFactory = metaDataUpdateFactory;
     this.gitRepoManager = gitRepoManager;
     this.pluginName = pluginName;
     this.projectCache = projectCache;
+    this.changeHooks = changeHooks;
   }
 
   @Override
@@ -465,13 +472,15 @@ public class ManifestSubscription implements
       refExists = false;
     }
 
+
+    RevCommit commit = null;
     if (refExists) {
       Map<String, Manifest> entry = Maps.newHashMapWithExpectedSize(1);
       entry.put("default.xml", manifest);
       vManifests.setManifests(entry);
       vManifests.setSrcManifestRepo(manifestSrc);
       vManifests.setExtraCommitMsg(extraCommitMsg);
-      vManifests.commit(update);
+      commit = vManifests.commit(update);
     } else {
       vManifests = new VersionedManifests("master");
       try {
@@ -482,8 +491,21 @@ public class ManifestSubscription implements
       Map<String, Manifest> entry = Maps.newHashMapWithExpectedSize(1);
       entry.put("default.xml", manifest);
       vManifests.setManifests(entry);
-      vManifests.commitToNewRef(update, refName);
+      commit = vManifests.commitToNewRef(update, refName);
     }
+
+    // TODO this may be bug in the MetaDataUpdate or VersionedMetaData
+    // May be related:
+    // https://code.google.com/p/gerrit/issues/detail?id=2564
+    // https://gerrit-review.googlesource.com/55540
+    if (commit != null) {
+      changeHooks.doRefUpdatedHook(new Branch.NameKey(p, refName),
+                                    commit.getParent(0).getId(),
+                                    commit.getId(), null);
+    } else {
+      log.warn("Failing to commit manifest subscription update");
+    }
+
   }
 
 }
