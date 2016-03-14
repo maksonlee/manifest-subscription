@@ -45,6 +45,7 @@ manifest repositories
 * Projects in the manifests are assumed to be on the server.  (There is no check
 currently so it's a potential source of error.)
 * Snapshot manifests are generated when the source manifests are updated
+* Parsed manifests are kept in memory for quick lookup
 
 
 ```
@@ -54,7 +55,8 @@ xjc -dtd -d gen -p com.amd.gerrit.plugins.manifestsubscription.manifest manifest
 Manifest represent raw XML
 CanonicalManifest resolve <include> and <remove-project>
 
-* TODO: keep parsed manifest in memory for quick lookup
+* TODO: generate snapshot manifest for all commit (Currently only generated on a per push/ref-updated basis)
+  * Make it configurable, possibly per project, using plugin config or via special tag in manifest
 * TODO: monitor all manifest branch if no branch is specified
 * TODO: ssh command to check what is being monitored
 * TODO: strict mode, only monitor projects using default (no remote)
