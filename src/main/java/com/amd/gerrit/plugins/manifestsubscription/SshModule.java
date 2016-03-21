@@ -21,5 +21,6 @@ class SshModule extends PluginCommandModule {
   protected void configureCommands() {
     command(ShowSubscription.class);
     command(BranchManifest.class);
+    command(TagManifest.class);
   }
 }

@@ -207,6 +207,39 @@ public class VersionedManifests extends VersionedMetaData implements ManifestPro
     saveFile(path, output.toByteArray());
   }
 
+  static void tagManifest(GitRepositoryManager gitRepoManager,
+                             Manifest manifest,
+                             final String tag)
+      throws GitAPIException, IOException {
+    Table<String, String, String> lookup = HashBasedTable.create();
+    String defaultRef = null;
+
+    if (manifest.getDefault() != null) {
+      defaultRef = manifest.getDefault().getRevision();
+    }
+
+    ManifestOp op = new ManifestOp() {
+      @Override
+      public boolean apply(com.amd.gerrit.plugins.manifestsubscription.manifest.Project project,
+                           String hash, String name,
+                           GitRepositoryManager gitRepoManager) throws
+          GitAPIException, IOException {
+        Project.NameKey p = new Project.NameKey(project.getName());
+        Repository db = gitRepoManager.openRepository(p);
+        Git git = new Git(db);
+
+        RevWalk walk = new RevWalk(db);
+        RevCommit commit = walk.parseCommit(db.resolve(hash));
+        git.tag().setName(tag).setObjectId(commit).setAnnotated(true).call();
+
+        git.close();
+        return true;
+      }
+    };
+
+    traverseManifestAndApplyOp(gitRepoManager, manifest.getProject(), defaultRef, op, lookup);
+  }
+
   static void branchManifest(GitRepositoryManager gitRepoManager,
                              Manifest manifest,
                              final String branch)
@@ -223,9 +256,7 @@ public class VersionedManifests extends VersionedMetaData implements ManifestPro
       public boolean apply(com.amd.gerrit.plugins.manifestsubscription.manifest.Project project,
                            String hash, String name,
                            GitRepositoryManager gitRepoManager) throws
-                                RefAlreadyExistsException,
-                                InvalidRefNameException, RefNotFoundException,
-                                GitAPIException, IOException {
+          GitAPIException, IOException {
         Project.NameKey p = new Project.NameKey(project.getName());
         Repository db = gitRepoManager.openRepository(p);
         Git git = new Git(db);
