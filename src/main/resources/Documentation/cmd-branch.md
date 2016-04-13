@@ -45,3 +45,7 @@ Branch all projects on the server described in the `default.xml` manifest in com
 ssh -p @SSH_PORT@ @SSH_HOST@ @PLUGIN@ branch -r demo/build_manifest -c v0.9-15-g5f51acb -p default.xml -b releases/1.0.0
 
 ```
+
+SEE ALSO
+--------
+* [@PLUGIN@ tag SSH command](cmd-tag.html)

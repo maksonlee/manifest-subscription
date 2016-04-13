@@ -45,3 +45,7 @@ Tag all projects on the server described in the `default.xml` manifest in commit
 ssh -p @SSH_PORT@ @SSH_HOST@ @PLUGIN@ tag -r demo/build_manifest -c v0.9-15-g5f51acb -p default.xml -t releases/1.0.0
 
 ```
+
+SEE ALSO
+--------
+* [@PLUGIN@ branch SSH command](cmd-branch.html)

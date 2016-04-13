@@ -19,6 +19,9 @@ import com.google.inject.servlet.ServletModule;
 class HttpModule extends ServletModule {
   @Override
   protected void configureServlets() {
-    // TODO
+    serve("/show").with(ShowSubscriptionServlet.class);
+    serve("/branch").with(BranchManifestServlet.class);
+    serve("/tag").with(TagManifestServlet.class);
   }
 }
+
