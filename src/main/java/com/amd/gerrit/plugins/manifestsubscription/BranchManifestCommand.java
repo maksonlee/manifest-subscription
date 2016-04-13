@@ -33,7 +33,7 @@ import java.io.IOException;
 
 @RequiresCapability(GlobalCapability.ADMINISTRATE_SERVER)
 @CommandMetaData(name = "branch", description = "branch all projects described in a manifest on the server")
-public class BranchManifest extends SshCommand {
+public class BranchManifestCommand extends SshCommand {
 
   @Inject
   private GitRepositoryManager gitRepoManager;
@@ -54,6 +54,10 @@ public class BranchManifest extends SshCommand {
       usage = "", required = true)
   private String newBranch;
 
+  @Option(name = "-o", aliases = {"--output-type"},
+      usage = "", required = false)
+  private Utilities.OutputType outputType;
+
   @Override
   protected void run() {
     stdout.println("Branching manifest:");
@@ -61,32 +65,9 @@ public class BranchManifest extends SshCommand {
     stdout.println(manifestCommitish);
     stdout.println(manifestPath);
 
+    Utilities.branchManifest(gitRepoManager, manifestRepo, manifestCommitish,
+        manifestPath, newBranch, stdout, stderr,
+        outputType==Utilities.OutputType.JSON);
 
-    Project.NameKey p = new Project.NameKey(manifestRepo);
-    try {
-      Repository repo = gitRepoManager.openRepository(p);
-      ObjectId commitId = repo.resolve(manifestCommitish);
-      VersionedManifests vManifests = new VersionedManifests(manifestCommitish);
-      vManifests.load(repo, commitId);
-      CanonicalManifest manifests = new CanonicalManifest(vManifests);
-
-      Manifest manifest = manifests.getCanonicalManifest(manifestPath);
-
-      stdout.println("");
-      stdout.println("Branch '" + newBranch +
-          "' will be created for the following projects:");
-      for (com.amd.gerrit.plugins.manifestsubscription.manifest.Project proj :
-            manifest.getProject()) {
-        stdout.print(proj.getRevision());
-        stdout.print("\t");
-        stdout.println(proj.getName());
-      }
-
-      VersionedManifests.branchManifest(gitRepoManager, manifest, newBranch);
-
-    } catch (IOException | ConfigInvalidException | ManifestReadException |
-        JAXBException | GitAPIException e) {
-      e.printStackTrace(stderr);
-    }
   }
 }

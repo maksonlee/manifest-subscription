@@ -20,32 +20,24 @@ import com.google.gerrit.sshd.CommandMetaData;
 import com.google.gerrit.sshd.SshCommand;
 import com.google.inject.Inject;
 
+import org.kohsuke.args4j.Option;
+
 import java.util.Set;
 
 @RequiresCapability(GlobalCapability.ADMINISTRATE_SERVER)
 @CommandMetaData(name = "show", description = "Show states of manifest-subscription")
-public class ShowSubscription extends SshCommand {
+public class ShowSubscriptionCommand extends SshCommand {
 
   @Inject
   private ManifestSubscription manifestSubscription;
 
+  @Option(name = "-o", aliases = {"--output-type"},
+      usage = "", required = false)
+  private Utilities.OutputType outputType;
+
   @Override
-  protected void run() throws UnloggedFailure, Failure, Exception {
-    stdout.println("Enabled manifest repositories:");
-
-    Set<String> repos = manifestSubscription.getEnabledManifestSource();
-    Set<ProjectBranchKey> projects = manifestSubscription.getSubscribedProjects();
-
-    for (String repo : repos) {
-      stdout.println(repo);
-    }
-
-    stdout.println("");
-    stdout.println("Monitoring projects:");
-
-    for (ProjectBranchKey project : projects) {
-      stdout.println(project.getProject() + " | " + project.getBranch());
-    }
-
+  protected void run() {
+    Utilities.showSubscription(manifestSubscription, stdout,
+        outputType==Utilities.OutputType.JSON);
   }
 }

@@ -33,7 +33,7 @@ import java.io.IOException;
 
 @RequiresCapability(GlobalCapability.ADMINISTRATE_SERVER)
 @CommandMetaData(name = "tag", description = "tag all projects described in a manifest on the server")
-public class TagManifest extends SshCommand {
+public class TagManifestCommand extends SshCommand {
 
   @Inject
   private GitRepositoryManager gitRepoManager;
@@ -54,6 +54,10 @@ public class TagManifest extends SshCommand {
       usage = "", required = true)
   private String newTag;
 
+  @Option(name = "-o", aliases = {"--output-type"},
+      usage = "", required = false)
+  private Utilities.OutputType outputType;
+
   @Override
   protected void run() {
     stdout.println("Tagging manifest:");
@@ -61,32 +65,8 @@ public class TagManifest extends SshCommand {
     stdout.println(manifestCommitish);
     stdout.println(manifestPath);
 
-
-    Project.NameKey p = new Project.NameKey(manifestRepo);
-    try {
-      Repository repo = gitRepoManager.openRepository(p);
-      ObjectId commitId = repo.resolve(manifestCommitish);
-      VersionedManifests vManifests = new VersionedManifests(manifestCommitish);
-      vManifests.load(repo, commitId);
-      CanonicalManifest manifests = new CanonicalManifest(vManifests);
-
-      Manifest manifest = manifests.getCanonicalManifest(manifestPath);
-
-      stdout.println("");
-      stdout.println("Tag '" + newTag +
-          "' will be created for the following projects:");
-      for (com.amd.gerrit.plugins.manifestsubscription.manifest.Project proj :
-            manifest.getProject()) {
-        stdout.print(proj.getRevision());
-        stdout.print("\t");
-        stdout.println(proj.getName());
-      }
-
-      VersionedManifests.tagManifest(gitRepoManager, manifest, newTag);
-
-    } catch (IOException | ConfigInvalidException | ManifestReadException |
-        JAXBException | GitAPIException e) {
-      e.printStackTrace(stderr);
-    }
+    Utilities.tagManifest(gitRepoManager, manifestRepo, manifestCommitish,
+        manifestPath, newTag, stdout, stderr,
+        outputType==Utilities.OutputType.JSON);
   }
 }
