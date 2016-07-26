@@ -14,6 +14,10 @@ ssh -p @SSH_PORT@ @SSH_HOST@ @PLUGIN@ branch
   {-c/--manifest-commit-ish <manifest commit-ish>}
   {-p/--manifest-path <manifest path>}
   {-b/--new-branch <new branch name>}
+  [-o/--output-type]
+  [-nr/--new-manifest-repo <new manifest repo>]
+  [-nc/--new-manifest-branch <new manifest branch>]
+  [-np/--new-manifest-path <new manifest path>]
   [--help]
 ```
 
@@ -31,6 +35,11 @@ OPTIONS
 
 `-b/--new-branch <new branch name>`
 : The name of the branch that will be created on all projects in the manifest specified above
+
+`-nr/--new-manifest-repo <new manifest repo>`
+`-nb/--new-manifest-branch <new manifest branch>`
+`-np/--new-manifest-path <new manifest path>`
+: (optional) A new manifest (to be created) that points to the new branch
 
 EXAMPLES
 --------

@@ -31,6 +31,8 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathSuffixFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -42,6 +44,8 @@ import java.io.IOException;
 import java.util.*;
 
 public class VersionedManifests extends VersionedMetaData implements ManifestProvider {
+  private static final Logger log =
+      LoggerFactory.getLogger(VersionedManifests.class);
   private String refName;
   private Unmarshaller manifestUnmarshaller;
   private Marshaller manifestMarshaller;
@@ -306,7 +310,7 @@ public class VersionedManifests extends VersionedMetaData implements ManifestPro
     traverseManifestAndApplyOp(gitRepoManager, manifest.getProject(), defaultRef, op, lookup);
   }
 
-  private static void traverseManifestAndApplyOp(
+  static void traverseManifestAndApplyOp(
       GitRepositoryManager gitRepoManager,
       List<com.amd.gerrit.plugins.manifestsubscription.manifest.Project> projects,
       String defaultRef,
@@ -324,7 +328,11 @@ public class VersionedManifests extends VersionedMetaData implements ManifestPro
       ref = (ref == null) ? defaultRef : ref;
 
       if (ref != null) {
-        hash = lookup.get(projectName, ref);
+        if (lookup != null) {
+          hash = lookup.get(projectName, ref);
+        } else {
+          hash = null;
+        }
 
         if (hash == null) {
           p = new Project.NameKey(projectName);
@@ -339,7 +347,7 @@ public class VersionedManifests extends VersionedMetaData implements ManifestPro
         }
 
         if (hash != null) {
-          lookup.put(projectName, ref, hash);
+          if (lookup != null) lookup.put(projectName, ref, hash);
           op.apply(project, hash, ref, gitRepoManager);
         }
       }

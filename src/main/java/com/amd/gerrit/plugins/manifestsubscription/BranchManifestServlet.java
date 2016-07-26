@@ -16,6 +16,7 @@ package com.amd.gerrit.plugins.manifestsubscription;
 
 import com.google.gerrit.extensions.annotations.Export;
 import com.google.gerrit.server.git.GitRepositoryManager;
+import com.google.gerrit.server.git.MetaDataUpdate;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -33,36 +34,41 @@ public class BranchManifestServlet extends HttpServlet {
   @Inject
   private GitRepositoryManager gitRepoManager;
 
+  @Inject
+  private MetaDataUpdate.Server metaDataUpdateFactory;
+
   protected void doPost(HttpServletRequest req, HttpServletResponse res)
                                                             throws IOException {
 
     Map<String, String[]> input = req.getParameterMap();
 
-    if (inputValid(req)) {
+    if (Utilities.httpInputValid(req)) {
       res.setContentType("application/json");
       res.setCharacterEncoding("UTF-8");
 
+      String newManifestRepo = null;
+      String newManifestBranch= null;
+      String newManifestPath = null;
+
+      if (input.containsKey("new-manifest-repo")) {
+        newManifestRepo = input.get("new-manifest-repo")[0];
+        newManifestBranch = input.get("new-manifest-branch")[0];
+        newManifestPath = input.get("new-manifest-path")[0];
+      }
+
       Utilities.branchManifest(gitRepoManager,
+                                metaDataUpdateFactory,
                                 input.get("manifest-repo")[0],
                                 input.get("manifest-commit-ish")[0],
                                 input.get("manifest-path")[0],
                                 input.get("new-branch")[0],
+                                newManifestRepo,
+                                newManifestBranch,
+                                newManifestPath,
                                 res.getWriter(), null, true);
 
     } else {
       res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }
-  }
-
-  private boolean inputValid(HttpServletRequest request) {
-    Map<String, String[]> input = request.getParameterMap();
-    if(input.containsKey("manifest-repo") &&
-        input.containsKey("manifest-commit-ish") &&
-        input.containsKey("manifest-path") &&
-        input.containsKey("new-branch")) {
-      return true;
-    }
-
-    return false;
   }
 }

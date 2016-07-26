@@ -38,7 +38,17 @@ public class TagManifestServlet extends HttpServlet {
     res.setCharacterEncoding("UTF-8");
     Map<String, String[]> input = req.getParameterMap();
 
-    if (inputValid(req)) {
+    String newManifestRepo = null;
+    String newManifestBranch= null;
+    String newManifestPath = null;
+
+    if (input.containsKey("new-manifest-repo")) {
+      newManifestRepo = input.get("new-manifest-repo")[0];
+      newManifestBranch = input.get("new-manifest-branch")[0];
+      newManifestPath = input.get("new-manifest-path")[0];
+    }
+
+    if (Utilities.httpInputValid(req)) {
       res.setContentType("application/json");
       res.setCharacterEncoding("UTF-8");
 
@@ -53,17 +63,4 @@ public class TagManifestServlet extends HttpServlet {
       res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }
   }
-
-  private boolean inputValid(HttpServletRequest request) {
-    Map<String, String[]> input = request.getParameterMap();
-    if(input.containsKey("manifest-repo") &&
-        input.containsKey("manifest-commit-ish") &&
-        input.containsKey("manifest-path") &&
-        input.containsKey("new-tag")) {
-      return true;
-    }
-
-    return false;
-  }
-
 }
