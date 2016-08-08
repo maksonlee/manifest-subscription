@@ -148,7 +148,7 @@ public class Utilities {
     MetaDataUpdate update = metaDataUpdateFactory.create(p);
     if (commitId == null) {
       // TODO remove assumption that master branch always exists
-      vManifests = new VersionedManifests("master");
+      vManifests = new VersionedManifests("refs/heads/master");
       vManifests.load(update);
     } else {
       vManifests = new VersionedManifests(manifestBranch);
