@@ -14,6 +14,10 @@ _POST /plugins/@PLUGIN@/branch?manifest-repo=repo/name&manifest-commit-ish=commi
 * manifest-commit-ish: commit-ish that points to the commit that contain the manifest (branch name, git describe string, etc.)
 * manifest-path: path to the manifest that defines the projects to be branched
 * new-branch: name of the branch to be created for each of the project defined in the manifest above
+* new-manifest-repo [optional]: 
+* new-manifest-branch [optional]: 
+* new-manifest-path [optional]: 
+* create-snapshot-branch [optional]: 
 
 #### Request
 ```
