@@ -74,4 +74,4 @@ Content-Type: application/json;charset=UTF-8
 
 SEE ALSO
 --------
-* [/tag REST endpoint](rest-api-tag.html)
+* [/tag REST endpoint](rest-api-tag.md)

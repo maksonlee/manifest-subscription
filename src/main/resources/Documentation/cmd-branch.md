@@ -57,4 +57,4 @@ ssh -p @SSH_PORT@ @SSH_HOST@ @PLUGIN@ branch -r demo/build_manifest -c v0.9-15-g
 
 SEE ALSO
 --------
-* [@PLUGIN@ tag SSH command](cmd-tag.html)
+* [@PLUGIN@ tag SSH command](cmd-tag.md)

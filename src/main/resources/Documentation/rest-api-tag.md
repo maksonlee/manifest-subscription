@@ -74,4 +74,4 @@ Content-Type: application/json;charset=UTF-8
 
 SEE ALSO
 --------
-* [/branch REST endpoint](rest-api-branch.html)
+* [/branch REST endpoint](rest-api-branch.md)
