@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
 
-  <include name="../aospinclude.xml" />
-  <include name="testonly1.xml" />
+  <include name="aospinclude.xml" />
+  <include name="subdir/testonly1.xml" />
 
   <remove-project name="demo/git/test/project4"/>
   <project path="git/test/project4" name="demo/git/test/project4" revision="replaced" />

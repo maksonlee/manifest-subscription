@@ -40,18 +40,14 @@ public class CanonicalManifest {
   Manifest getCanonicalManifest(String path) throws ManifestReadException {
     if (manifests.containsKey(path)) {
       Manifest manifest = (Manifest) manifests.get(path).clone();
-      Path manifestPath = Paths.get(path);
-
 
       Manifest includedManifest;
       Path includedPath;
       Iterator<Include> i = manifest.getInclude().listIterator();
       String include;
-      String parent;
       while (i.hasNext()) {
-        parent = manifestPath.getParent() != null ? manifestPath.getParent().toString() + "/" : "";
         include = i.next().getName();
-        includedPath = Paths.get(parent+include);
+        includedPath = Paths.get(include);
         i.remove();
 
         includedManifest = getCanonicalManifest(includedPath.normalize().toString());

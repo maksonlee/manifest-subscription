@@ -111,8 +111,8 @@ public class VersionedManifestsTest extends LocalDiskRepositoryTestCase {
 
     manifest = versionedManifests.readManifest("subdir/aospincludereplace.xml");
     assertThat(manifest.getInclude()).isNotEmpty();
-    assertThat(manifest.getInclude().get(0).getName()).isEqualTo("../aospinclude.xml");
-    assertThat(manifest.getInclude().get(1).getName()).isEqualTo("testonly1.xml");
+    assertThat(manifest.getInclude().get(0).getName()).isEqualTo("aospinclude.xml");
+    assertThat(manifest.getInclude().get(1).getName()).isEqualTo("subdir/testonly1.xml");
 
     thrown.expect(ManifestReadException.class);
     manifest = versionedManifests.readManifest("nonxml.txt");
