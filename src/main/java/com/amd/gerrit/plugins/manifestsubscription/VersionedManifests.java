@@ -331,7 +331,10 @@ public class VersionedManifests extends VersionedMetaData implements ManifestPro
           p = new Project.NameKey(projectName);
           try (Repository db = gitRepoManager.openRepository(p)) {
             hash = db.resolve(ref).getName();
-          } catch (IOException e) {
+          } catch (IOException | NullPointerException e) {
+            log.warn(ref);
+            log.warn(projectName);
+            log.warn(defaultRef);
             e.printStackTrace();
           }
         }

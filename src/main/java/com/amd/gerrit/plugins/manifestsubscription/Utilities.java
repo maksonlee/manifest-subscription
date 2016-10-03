@@ -128,7 +128,7 @@ public class Utilities {
     // May be related:
     // https://code.google.com/p/gerrit/issues/detail?id=2564
     // https://gerrit-review.googlesource.com/55540
-    if (commit != null) {
+    if (commit != null && commit.getParents().length > 0) {
       changeHooks.doRefUpdatedHook(new Branch.NameKey(p, refName),
                                     commit.getParent(0).getId(),
                                     commit.getId(), null);
