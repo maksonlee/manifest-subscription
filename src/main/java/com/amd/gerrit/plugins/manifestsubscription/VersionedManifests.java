@@ -332,10 +332,10 @@ public class VersionedManifests extends VersionedMetaData implements ManifestPro
           try (Repository db = gitRepoManager.openRepository(p)) {
             hash = db.resolve(ref).getName();
           } catch (IOException | NullPointerException e) {
-            log.warn(ref);
-            log.warn(projectName);
-            log.warn(defaultRef);
-            e.printStackTrace();
+            log.warn("Cannot resolve ref: " + ref +
+                "\n\t" + projectName +
+                "\n\t" + defaultRef +
+                "\n\t" + Arrays.toString(e.getStackTrace()));
           }
         }
 
