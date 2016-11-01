@@ -260,7 +260,7 @@ public class ManifestSubscription implements
             String branchPath;
             while (iter.hasNext()) {
               branchPath = iter.next();
-              if (branchPath.startsWith(branchName)) {
+              if (branchPath.startsWith(branchName+"/")) {
                 iter.remove();
                 manifestStores.remove(store, branchPath);
                 manifestSource.remove(store, branchPath);
