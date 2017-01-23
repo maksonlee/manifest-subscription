@@ -126,14 +126,17 @@ public class Utilities {
     // https://code.google.com/p/gerrit/issues/detail?id=2564
     // https://gerrit-review.googlesource.com/55540
     if (commit != null) {
-      ObjectId parent = ObjectId.zeroId();
+      if (!commit.equals(commitId)) {
+        ObjectId parent = ObjectId.zeroId();
 
-      if (commit.getParents().length > 0) {
-        parent = commit.getParent(0).getId();
+        if (commit.getParents().length > 0) {
+          parent = commit.getParent(0).getId();
+        }
+        changeHooks.doRefUpdatedHook(new Branch.NameKey(p, refName),
+            parent,
+            commit.getId(), null);
+
       }
-      changeHooks.doRefUpdatedHook(new Branch.NameKey(p, refName),
-                                    parent,
-                                    commit.getId(), null);
       return commit.getId();
     } else {
       log.warn("Failing to commit manifest subscription update:"+
