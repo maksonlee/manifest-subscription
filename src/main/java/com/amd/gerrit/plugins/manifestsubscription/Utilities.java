@@ -15,6 +15,9 @@
 package com.amd.gerrit.plugins.manifestsubscription;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Maps;
 import com.google.gerrit.common.ChangeHooks;
 import com.google.gerrit.reviewdb.client.Branch;
@@ -375,7 +378,10 @@ public class Utilities {
 
     Set<String> repos = manifestSubscription.getEnabledManifestSource();
     Set<ProjectBranchKey> projects = manifestSubscription.getSubscribedProjects();
-    
+
+    ImmutableTable<ProjectBranchKey, String, Map<String, Set<
+          com.amd.gerrit.plugins.manifestsubscription.manifest.Project>>> subscriptions =
+        manifestSubscription.getSubscribedRepos();
 
     if (inJSON) {
 
@@ -403,8 +409,19 @@ public class Utilities {
       writer.println("");
       writer.println("Monitoring projects:");
 
-      for (ProjectBranchKey project : projects) {
-        writer.println(project.getProject() + " | " + project.getBranch());
+      for (ProjectBranchKey pbKey : subscriptions.rowKeySet()) {
+        writer.println(pbKey.getProject() + " | " + pbKey.getBranch());
+        ImmutableCollection<Map<String, Set<com.amd.gerrit.plugins.manifestsubscription.manifest.Project>>> m =
+            subscriptions.row(pbKey).values();
+
+        for (Map<String,
+            Set<com.amd.gerrit.plugins.manifestsubscription.manifest.Project>> i : m) {
+          for (String s : i.keySet()) {
+            writer.println("  - " + s);
+          }
+        }
+
+
       }
 
     }

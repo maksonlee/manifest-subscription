@@ -92,6 +92,12 @@ public class ManifestSubscription implements
     return ImmutableSet.copyOf(subscribedRepos.rowKeySet());
   }
 
+  public ImmutableTable<ProjectBranchKey, String, Map<String, Set<
+      com.amd.gerrit.plugins.manifestsubscription.manifest.Project>>> getSubscribedRepos() {
+    return new ImmutableTable.Builder<ProjectBranchKey, String, Map<String, Set<
+      com.amd.gerrit.plugins.manifestsubscription.manifest.Project>>>().putAll(subscribedRepos).build();
+  }
+
   @Override
   public void start() {
     ProjectConfig config;
