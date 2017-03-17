@@ -284,9 +284,9 @@ public class ManifestSubscription implements
           try {
             manifest = cManifest.getCanonicalManifest(path);
 
-            VersionedManifests.affixManifest(gitRepoManager, manifest, lookup);
-
             watchCanonicalManifest(manifest, store, bp, projectName);
+
+            VersionedManifests.affixManifest(gitRepoManager, manifest, lookup);
             //save manifest
             //TODO added the m/ to the ref to to work around LOCK_FAILURE error of creating master/bla/bla
             //TODO (because default master ref already exists) better solution?
@@ -339,10 +339,8 @@ public class ManifestSubscription implements
         continue;
       }
 
-      // Make sure revision is branch ref w/o refs/heads
       String branch = project.getRevision() == null ?
-          defaultBranch : (project.getUpstream() != null ?
-          project.getUpstream() : project.getRevision());
+          defaultBranch : project.getRevision();
       pbKey = new ProjectBranchKey(project.getName(),
           Repository.shortenRefName(branch));
 
