@@ -28,11 +28,7 @@ import com.amd.gerrit.plugins.manifestsubscription.manifest.Manifest;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
-import org.eclipse.jgit.lib.CommitBuilder;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.PersonIdent;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
@@ -279,7 +275,9 @@ public class VersionedManifests extends VersionedMetaData implements ManifestPro
              Git git = new Git(db)) {
           try {
             Ref r = git.branchCreate().setName(branch).setStartPoint(hash).call();
-            gitReferenceUpdated.fire(p, branch, ObjectId.zeroId(), r.getObjectId());
+            RefUpdate refUpdate = db.updateRef(branch);
+            refUpdate.setNewObjectId(r.getObjectId());
+            gitReferenceUpdated.fire(p, refUpdate, null);
           } catch (Exception e) {
 
           }

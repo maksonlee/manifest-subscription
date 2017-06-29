@@ -30,8 +30,10 @@ import com.google.gson.GsonBuilder;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.transport.ReceiveCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,12 +127,9 @@ public class Utilities {
     // https://gerrit-review.googlesource.com/55540
     if (commit != null) {
       if (!commit.equals(commitId)) {
-        ObjectId parent = ObjectId.zeroId();
-
-        if (commit.getParents().length > 0) {
-          parent = commit.getParent(0).getId();
-        }
-        gitRefUpdated.fire(p, refName, parent, commit.getId() );
+        RefUpdate refUpdate = repo.updateRef(refName);
+        refUpdate.setNewObjectId(commit.getId());
+        gitRefUpdated.fire(p, refUpdate,null);
       }
       return commit.getId();
     } else {
