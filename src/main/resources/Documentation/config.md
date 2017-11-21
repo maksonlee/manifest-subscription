@@ -5,11 +5,15 @@ The following options can be configured in $GERRIT_SITE/etc/gerrit.config.
 ```
 [plugin "@PLUGIN@"]
   maxBranchesPerRepo = 1000
+  manifestPathPattern = .*\\.xml
 ```
 
 plugin.@PLUGIN@.maxBranchesPerRepo: Specify the maximum number of branches
 allowed to monitor for each manifest repository. When not specified, the default
 value is 1000.
+
+plugin.@PLUGIN@.manifestPathPattern: Regular expression match manifest file paths
+which should be motored. When not specified, the default value is .*\\.xml.
 
 ## Local Project Configuration
 
