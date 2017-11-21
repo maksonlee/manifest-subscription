@@ -112,8 +112,7 @@ public class ManifestSubscription implements
         loadStoreFromProjectConfig(p.toString(), config);
       } catch (IOException | ConfigInvalidException |
               JAXBException | LimitExceededException e) {
-        log.error(e.toString());
-        e.printStackTrace();
+        log.error(e.getMessage(), e);
       }
     }
   }
@@ -146,8 +145,7 @@ public class ManifestSubscription implements
 
     if (event.getNewObjectId().equals(ObjectId.zeroId().toString())) {
       // This happens when there's a branch deletion and possibly other events
-      log.info("Project: " + projectName +
-               "\nrefName: " + refName);
+      log.info("Project: " + projectName + "\nrefName: " + refName);
     } else if (enabledManifestSource.containsKey(projectName) &&
             refName.startsWith(REFS_HEADS) &&
             event.getOldObjectId().equals(ObjectId.zeroId().name())) {
@@ -195,7 +193,7 @@ public class ManifestSubscription implements
           extraCommitMsg.append(" ");
           extraCommitMsg.append(c.getShortMessage());
         } catch (IOException e) {
-          e.printStackTrace();
+          log.error(e.getMessage(), e);
         }
 
         // these are project from the above manifest previously
@@ -210,7 +208,7 @@ public class ManifestSubscription implements
                   gitRefUpdated, store, STORE_BRANCH_PREFIX + storeBranch,
               manifest, manifestSrc, extraCommitMsg.toString(), null);
         } catch (JAXBException | IOException e) {
-          e.printStackTrace();
+          log.error(e.getMessage(), e);
         }
 
       }
@@ -240,7 +238,7 @@ public class ManifestSubscription implements
       VersionedManifests versionedManifests = parseManifests(event);
       processManifestChange(versionedManifests, projectName, branchName);
     } catch (JAXBException | IOException | ConfigInvalidException e) {
-      e.printStackTrace();
+      log.error(e.getMessage(), e);
     }
 
   }
@@ -303,14 +301,14 @@ public class ManifestSubscription implements
                            manifest, projectName);
 
           } catch (ManifestReadException | GitAPIException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
           }
 
         }
 
       }
     } catch (JAXBException | IOException e) {
-      e.printStackTrace();
+      log.error(e.getMessage(), e);
     }
 
   }
@@ -411,7 +409,7 @@ public class ManifestSubscription implements
       }
     } catch (IOException | ConfigInvalidException
             | JAXBException | LimitExceededException e) {
-      e.printStackTrace();
+      log.error(e.getMessage(), e);
     }
   }
 
