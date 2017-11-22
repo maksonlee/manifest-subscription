@@ -236,7 +236,7 @@ public class ManifestSubscription implements
                                      String projectName, String branchName) {
     try {
       VersionedManifests versionedManifests = parseManifests(event);
-      processManifestChange(versionedManifests, projectName, branchName);
+      processManifestChange(versionedManifests, projectName, branchName, event);
     } catch (JAXBException | IOException | ConfigInvalidException e) {
       log.error(e.getMessage(), e);
     }
@@ -244,7 +244,8 @@ public class ManifestSubscription implements
   }
 
   private void processManifestChange(VersionedManifests versionedManifests,
-                                     String projectName, String branchName) {
+                                     String projectName, String branchName,
+                                     Event event) {
     //possible manifest update in subscribing repos
     //TODO Fix, right now update all manifest every time
     //TODO even when only one of the manifest has changed
@@ -286,6 +287,25 @@ public class ManifestSubscription implements
         //TODO this may be impossible
         //TODO only monitor projects without 'remote' attribute / only using default?
 
+        StringBuilder extraCommitMsg = new StringBuilder();
+        if (event != null) {
+          Project.NameKey p = new Project.NameKey(projectName);
+          try (Repository r = gitRepoManager.openRepository(p);
+               RevWalk walk = new RevWalk(r)) {
+
+            RevCommit c = walk.parseCommit(
+                    ObjectId.fromString(event.getNewObjectId()));
+
+            extraCommitMsg.append(event.getNewObjectId().substring(0,7));
+            extraCommitMsg.append(" ");
+            extraCommitMsg.append(projectName);
+            extraCommitMsg.append(" ");
+            extraCommitMsg.append(c.getShortMessage());
+          } catch (IOException e) {
+            log.error(e.getMessage(), e);
+          }
+        }
+
         for (String path : manifests) {
           String bp = branchName + "/" + path;
           try {
@@ -297,8 +317,8 @@ public class ManifestSubscription implements
             //save manifest
             //TODO added the m/ to the ref to to work around LOCK_FAILURE error of creating master/bla/bla
             //TODO (because default master ref already exists) better solution?
-            updateManifest(store, STORE_BRANCH_PREFIX + bp,
-                           manifest, projectName);
+            updateManifest(store, STORE_BRANCH_PREFIX + bp, manifest,
+                    projectName, event == null ? null : extraCommitMsg.toString());
 
           } catch (ManifestReadException | GitAPIException e) {
             log.error(e.getMessage(), e);
@@ -446,7 +466,7 @@ public class ManifestSubscription implements
         VersionedManifests versionedManifests;
         for (String branch : branches) {
           versionedManifests = parseManifests(nameKey, branch);
-          processManifestChange(versionedManifests, projectName, branch);
+          processManifestChange(versionedManifests, projectName, branch, null);
         }
       }
     }
@@ -467,7 +487,7 @@ public class ManifestSubscription implements
     VersionedManifests versionedManifests;
     try {
       versionedManifests = parseManifests(nameKey, branch);
-      processManifestChange(versionedManifests, projectName, branch);
+      processManifestChange(versionedManifests, projectName, branch, null);
     } catch (JAXBException | IOException | ConfigInvalidException e) {
       log.error(e.getMessage(), e);
     }
@@ -508,10 +528,11 @@ public class ManifestSubscription implements
   }
 
   private void updateManifest(String projectName, String refName,
-                              Manifest manifest, String manifestSrc)
+                              Manifest manifest, String manifestSrc,
+                              String extraCommitMsg)
       throws JAXBException, IOException {
     Utilities.updateManifest(gitRepoManager, metaDataUpdateFactory, gitRefUpdated,
-        projectName, refName, manifest, manifestSrc, "", null);
+        projectName, refName, manifest, manifestSrc, extraCommitMsg, null);
   }
 
 }
