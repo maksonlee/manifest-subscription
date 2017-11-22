@@ -187,10 +187,10 @@ public class ManifestSubscription implements
           RevCommit c = walk.parseCommit(
               ObjectId.fromString(refUpdatedHash));
 
-          extraCommitMsg.append(refUpdatedHash.substring(0,7));
-          extraCommitMsg.append(" ");
           extraCommitMsg.append(projectName);
-          extraCommitMsg.append(" ");
+          extraCommitMsg.append("\n");
+          extraCommitMsg.append(refUpdatedHash);
+          extraCommitMsg.append("\n");
           extraCommitMsg.append(c.getShortMessage());
         } catch (IOException e) {
           log.error(e.getMessage(), e);
@@ -296,10 +296,10 @@ public class ManifestSubscription implements
             RevCommit c = walk.parseCommit(
                     ObjectId.fromString(event.getNewObjectId()));
 
-            extraCommitMsg.append(event.getNewObjectId().substring(0,7));
-            extraCommitMsg.append(" ");
             extraCommitMsg.append(projectName);
-            extraCommitMsg.append(" ");
+            extraCommitMsg.append("\n");
+            extraCommitMsg.append(event.getNewObjectId());
+            extraCommitMsg.append("\n");
             extraCommitMsg.append(c.getShortMessage());
           } catch (IOException e) {
             log.error(e.getMessage(), e);

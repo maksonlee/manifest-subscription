@@ -159,11 +159,13 @@ public class VersionedManifests extends VersionedMetaData implements ManifestPro
     // 2) An manifest update may contain multiple project, which means
     //    multiple one-line git log
     StringBuilder commitMsg = new StringBuilder();
-    commitMsg.append("Snapshot manifest from " +
-        srcManifestRepo + " updated\n\n");
-
     if (extraCommitMsg != null && extraCommitMsg.length() > 0) {
+      String sha1 = extraCommitMsg.split("\n")[1];
+      commitMsg.append(sha1 + "\n\n");
       commitMsg.append(extraCommitMsg);
+    } else {
+      commitMsg.append("Snapshot manifest from " +
+              srcManifestRepo + " updated");
     }
 
     String path;
