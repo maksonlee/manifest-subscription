@@ -26,6 +26,7 @@ import com.google.gerrit.server.git.MetaDataUpdate;
 import com.google.gerrit.server.git.ProjectConfig;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.inject.Inject;
+import dk.brics.automaton.RunAutomaton;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ObjectId;
@@ -39,6 +40,9 @@ import javax.naming.LimitExceededException;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.google.gerrit.reviewdb.client.RefNames.REFS_CONFIG;
 import static com.google.gerrit.reviewdb.client.RefNames.REFS_HEADS;
@@ -66,7 +70,7 @@ public class ManifestSubscription implements
    * source project lookup
    * manifest source project name, plugin config
    **/
-  private Map<String, PluginProjectConfig> enabledManifestSource = Maps.newHashMap();
+  private ConcurrentMap<String, PluginProjectConfig> enabledManifestSource = Maps.newConcurrentMap();
 
   /**
    * manifest store lookup
@@ -84,8 +88,8 @@ public class ManifestSubscription implements
    * lookup
    * subscribed project name and branch, manifest dest store, <manifest dest branch Project>
    **/
-  private Table<ProjectBranchKey, String, Map<String, Set<
-      com.amd.gerrit.plugins.manifestsubscription.manifest.Project>>> subscribedRepos = HashBasedTable.create();
+  private Table<ProjectBranchKey, String, ConcurrentMap<String, Set<
+        com.amd.gerrit.plugins.manifestsubscription.manifest.Project>>> subscribedRepos = HashBasedTable.create();
 
   public Set<String> getEnabledManifestSource() {
     return ImmutableSet.copyOf(enabledManifestSource.keySet());
@@ -104,17 +108,29 @@ public class ManifestSubscription implements
   @Override
   public void start() {
     ManifestSubscriptionConfig.readConfig();
-    ProjectConfig config;
-    for (Project.NameKey p : projectCache.all()) {
-      //TODO parallelize parsing/load up?
+    ExecutorService executorService = Executors.newFixedThreadPool(
+            Runtime.getRuntime().availableProcessors());
+
+    for (final Project.NameKey p : projectCache.all()) {
       try {
-        config = ProjectConfig.read(metaDataUpdateFactory.create(p));
-        loadStoreFromProjectConfig(p.toString(), config);
-      } catch (IOException | ConfigInvalidException |
-              JAXBException | LimitExceededException e) {
+        final ProjectConfig config = ProjectConfig.read(metaDataUpdateFactory.create(p));
+        executorService.execute(
+                new Runnable() {
+                  @Override
+                  public void run() {
+                    try {
+                      loadStoreFromProjectConfig(p.toString(), config);
+                    } catch (IOException | ConfigInvalidException | JAXBException | LimitExceededException e) {
+                      log.error(e.getMessage(), e);
+                    }
+                  }
+                });
+      } catch (IOException | ConfigInvalidException e) {
         log.error(e.getMessage(), e);
       }
     }
+
+    executorService.shutdown();
   }
 
   @Override
@@ -167,7 +183,7 @@ public class ManifestSubscription implements
   void processRepoChange(String refUpdatedHash, String projectName,
                                  ProjectBranchKey pbKey) {
     // Manifest store and branch
-    Map<String, Map<String, Set<
+    Map<String, ConcurrentMap<String, Set<
             com.amd.gerrit.plugins.manifestsubscription.manifest.Project>>>
         destinations = subscribedRepos.row(pbKey);
 
@@ -264,7 +280,7 @@ public class ManifestSubscription implements
         Map<String,
             Set<com.amd.gerrit.plugins.manifestsubscription.manifest.Project>> branchPaths;
         for (Table.Cell<ProjectBranchKey, String,
-            Map<String,
+            ConcurrentMap<String,
                 Set<com.amd.gerrit.plugins.manifestsubscription.manifest.Project>>> cell :
             subscribedRepos.cellSet()) {
           if (store.equals(cell.getColumnKey())) {
@@ -276,8 +292,10 @@ public class ManifestSubscription implements
               branchPath = iter.next();
               if (branchPath.startsWith(branchName+"/")) {
                 iter.remove();
-                manifestStores.remove(store, branchPath);
-                manifestSource.remove(store, branchPath);
+                synchronized (this) {
+                  manifestStores.remove(store, branchPath);
+                  manifestSource.remove(store, branchPath);
+                }
               }
             }
           }
@@ -343,8 +361,10 @@ public class ManifestSubscription implements
       defaultBranch = "";
     }
 
-    manifestStores.put(store, branchPath, manifest);
-    manifestSource.put(store, branchPath, manifestSrc);
+    synchronized (this) {
+      manifestStores.put(store, branchPath, manifest);
+      manifestSource.put(store, branchPath, manifestSrc);
+    }
 
     List<com.amd.gerrit.plugins.manifestsubscription.manifest.Project> projects
         = manifest.getProject();
@@ -374,8 +394,10 @@ public class ManifestSubscription implements
 
       //TODO only update manifests that changed
       if (!subscribedRepos.contains(pbKey, store)) {
-        subscribedRepos.put(pbKey, store,
-            Maps.<String, Set<com.amd.gerrit.plugins.manifestsubscription.manifest.Project>>newHashMap());
+        synchronized (this) {
+          subscribedRepos.put(pbKey, store,
+                  Maps.<String, Set<com.amd.gerrit.plugins.manifestsubscription.manifest.Project>>newConcurrentMap());
+        }
       }
 
       Map<String,
@@ -409,16 +431,20 @@ public class ManifestSubscription implements
 
         if (oldStore != null && !oldStore.isEmpty()) {
           //TODO FIX assume unique store for each manifest source (1-1 map)
-          manifestStores.row(oldStore).clear();
-          manifestSource.row(oldStore).clear();
+          synchronized (this) {
+            manifestStores.row(oldStore).clear();
+            manifestSource.row(oldStore).clear();
+          }
           enabledManifestSource.remove(event.getProjectName());
 
-          Iterator<Table.Cell<ProjectBranchKey, String, Map<String,
+          Iterator<Table.Cell<ProjectBranchKey, String, ConcurrentMap<String,
               Set<com.amd.gerrit.plugins.manifestsubscription.manifest.Project>>>> iter =
               subscribedRepos.cellSet().iterator();
           while (iter.hasNext()) {
             if (oldStore.equals(iter.next().getColumnKey())) {
-              iter.remove();
+              synchronized (this) {
+                iter.remove();
+              }
             }
           }
         }
