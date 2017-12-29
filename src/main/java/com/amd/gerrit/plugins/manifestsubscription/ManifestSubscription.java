@@ -223,7 +223,7 @@ public class ManifestSubscription implements
           Utilities.updateManifest(gitRepoManager, metaDataUpdateFactory,
                   gitRefUpdated, store, STORE_BRANCH_PREFIX + storeBranch,
               manifest, manifestSrc, extraCommitMsg.toString(), null);
-        } catch (JAXBException | IOException e) {
+        } catch (JAXBException | IOException | GitAPIException e) {
           log.error(e.getMessage(), e);
         }
 
@@ -556,7 +556,7 @@ public class ManifestSubscription implements
   private void updateManifest(String projectName, String refName,
                               Manifest manifest, String manifestSrc,
                               String extraCommitMsg)
-      throws JAXBException, IOException {
+      throws JAXBException, IOException, GitAPIException {
     Utilities.updateManifest(gitRepoManager, metaDataUpdateFactory, gitRefUpdated,
         projectName, refName, manifest, manifestSrc, extraCommitMsg, null);
   }

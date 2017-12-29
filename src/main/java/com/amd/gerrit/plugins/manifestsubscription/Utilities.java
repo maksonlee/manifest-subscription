@@ -27,6 +27,7 @@ import com.google.gerrit.server.git.MetaDataUpdate;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ObjectId;
@@ -82,7 +83,7 @@ public class Utilities {
                              Manifest manifest, String manifestSrc,
                              String extraCommitMsg,
                              String defaultBranchBase)
-      throws JAXBException, IOException {
+          throws JAXBException, IOException, GitAPIException {
     Project.NameKey p = new Project.NameKey(projectName);
     Repository repo = gitRepoManager.openRepository(p);
     MetaDataUpdate update = metaDataUpdateFactory.create(p);
@@ -121,6 +122,12 @@ public class Utilities {
     }
 
     if (commit != null) {
+      if (!commit.toObjectId().equals(commitId) &&
+              commit.getShortMessage().length() == 40) {
+        Git git = new Git(repo);
+        git.tag().setObjectId(commit).setName(
+                "snapshot/" + commit.getShortMessage()).call();
+      }
       return commit.getId();
     } else {
       log.warn("Failing to commit manifest subscription update:"+
