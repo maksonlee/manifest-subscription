@@ -277,22 +277,22 @@ public class ManifestSubscription implements
         // Remove old manifest from subscription if destination store and branch
         // matches manifest source being updated
         // TODO again, this assume 1-1 map between store and manifest store
-        Map<String,
-            Set<com.amd.gerrit.plugins.manifestsubscription.manifest.Project>> branchPaths;
-        for (Table.Cell<ProjectBranchKey, String,
-            ConcurrentMap<String,
-                Set<com.amd.gerrit.plugins.manifestsubscription.manifest.Project>>> cell :
-            subscribedRepos.cellSet()) {
-          if (store.equals(cell.getColumnKey())) {
-            branchPaths = cell.getValue();
+        synchronized (this) {
+          Map<String,
+                  Set<com.amd.gerrit.plugins.manifestsubscription.manifest.Project>> branchPaths;
+          for (Table.Cell<ProjectBranchKey, String,
+                  ConcurrentMap<String,
+                          Set<com.amd.gerrit.plugins.manifestsubscription.manifest.Project>>> cell :
+                  subscribedRepos.cellSet()) {
+            if (store.equals(cell.getColumnKey())) {
+              branchPaths = cell.getValue();
 
-            Iterator<String> iter = branchPaths.keySet().iterator();
-            String branchPath;
-            while (iter.hasNext()) {
-              branchPath = iter.next();
-              if (branchPath.startsWith(branchName+"/")) {
-                iter.remove();
-                synchronized (this) {
+              Iterator<String> iter = branchPaths.keySet().iterator();
+              String branchPath;
+              while (iter.hasNext()) {
+                branchPath = iter.next();
+                if (branchPath.startsWith(branchName + "/")) {
+                  iter.remove();
                   manifestStores.remove(store, branchPath);
                   manifestSource.remove(store, branchPath);
                 }
