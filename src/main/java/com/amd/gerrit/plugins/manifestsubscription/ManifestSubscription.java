@@ -165,7 +165,7 @@ public class ManifestSubscription implements
     } else if (enabledManifestSource.containsKey(projectName) &&
             refName.startsWith(REFS_HEADS) &&
             event.getOldObjectId().equals(ObjectId.zeroId().name())) {
-      processManifestBranchCreated(projectName, refName);
+      processManifestBranchCreated(projectName, branchName);
     } else if (REFS_CONFIG.equals(refName)) {
       // possible change in enabled repos
       processProjectConfigChange(event);
