@@ -20,12 +20,15 @@ import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.events.GitReferenceUpdatedListener;
 import com.google.gerrit.extensions.events.LifecycleListener;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.extensions.events.GitReferenceUpdated;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.git.MetaDataUpdate;
 import com.google.gerrit.server.git.ProjectConfig;
+import com.google.gerrit.server.git.TagCache;
 import com.google.gerrit.server.project.ProjectCache;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import dk.brics.automaton.RunAutomaton;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
@@ -62,7 +65,9 @@ public class ManifestSubscription implements
   private final MetaDataUpdate.Server metaDataUpdateFactory;
   private final GitRepositoryManager gitRepoManager;
   private final ProjectCache projectCache;
+  private final TagCache tagCache;
   private final GitReferenceUpdated gitRefUpdated;
+  private final Provider<IdentifiedUser> identifiedUser;
 
 
 
@@ -143,12 +148,16 @@ public class ManifestSubscription implements
                        GitRepositoryManager gitRepoManager,
                        @PluginName String pluginName,
                        ProjectCache projectCache,
-                       GitReferenceUpdated gitRefUpdated) {
+                       TagCache tagCache,
+                       GitReferenceUpdated gitRefUpdated,
+                       Provider<IdentifiedUser> identifiedUser) {
     this.metaDataUpdateFactory = metaDataUpdateFactory;
     this.gitRepoManager = gitRepoManager;
     this.pluginName = pluginName;
     this.projectCache = projectCache;
+    this.tagCache = tagCache;
     this.gitRefUpdated = gitRefUpdated;
+    this.identifiedUser = identifiedUser;
   }
 
   @Override
@@ -221,8 +230,9 @@ public class ManifestSubscription implements
 
         try {
           Utilities.updateManifest(gitRepoManager, metaDataUpdateFactory,
-                  gitRefUpdated, store, STORE_BRANCH_PREFIX + storeBranch,
-              manifest, manifestSrc, extraCommitMsg.toString(), null);
+                  tagCache, gitRefUpdated, identifiedUser, store,
+                  STORE_BRANCH_PREFIX + storeBranch, manifest,
+                  manifestSrc, extraCommitMsg.toString(), null);
         } catch (JAXBException | IOException | GitAPIException e) {
           log.error(e.getMessage(), e);
         }
@@ -557,8 +567,9 @@ public class ManifestSubscription implements
                               Manifest manifest, String manifestSrc,
                               String extraCommitMsg)
       throws JAXBException, IOException, GitAPIException {
-    Utilities.updateManifest(gitRepoManager, metaDataUpdateFactory, gitRefUpdated,
-        projectName, refName, manifest, manifestSrc, extraCommitMsg, null);
+    Utilities.updateManifest(gitRepoManager, metaDataUpdateFactory,
+            tagCache, gitRefUpdated, identifiedUser, projectName, refName,
+            manifest, manifestSrc, extraCommitMsg, null);
   }
 
 }

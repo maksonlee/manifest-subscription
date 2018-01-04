@@ -16,12 +16,15 @@ package com.amd.gerrit.plugins.manifestsubscription;
 
 import com.google.gerrit.common.data.GlobalCapability;
 import com.google.gerrit.extensions.annotations.RequiresCapability;
+import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.extensions.events.GitReferenceUpdated;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.git.MetaDataUpdate;
+import com.google.gerrit.server.git.TagCache;
 import com.google.gerrit.sshd.CommandMetaData;
 import com.google.gerrit.sshd.SshCommand;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import org.kohsuke.args4j.Option;
 
 @RequiresCapability(GlobalCapability.ADMINISTRATE_SERVER)
@@ -35,7 +38,13 @@ public class BranchManifestCommand extends SshCommand {
   private MetaDataUpdate.Server metaDataUpdateFactory;
 
   @Inject
+  private TagCache tagCache;
+
+  @Inject
   private GitReferenceUpdated gitRefUpdated;
+
+  @Inject
+  private Provider<IdentifiedUser> identifiedUser;
 
   @Option(name = "-r", aliases = {"--manifest-repo"},
           usage = "", required = true)
@@ -89,13 +98,11 @@ public class BranchManifestCommand extends SshCommand {
     stdout.println(newManifestPath);
     stdout.println("Create snapshot branch: " + createSnapShotBranch);
 
-    Utilities.branchManifest(gitRepoManager, metaDataUpdateFactory, gitRefUpdated,
-        manifestRepo, manifestCommitish, manifestPath,
-        newBranch,
-        newManifestRepo, newManifestBranch, newManifestPath,
-        createSnapShotBranch,
-        stdout, stderr,
-        outputType==Utilities.OutputType.JSON);
+    Utilities.branchManifest(gitRepoManager, metaDataUpdateFactory, tagCache,
+            gitRefUpdated, identifiedUser, manifestRepo, manifestCommitish,
+            manifestPath, newBranch, newManifestRepo, newManifestBranch,
+            newManifestPath, createSnapShotBranch, stdout, stderr,
+            outputType == Utilities.OutputType.JSON);
 
   }
 }

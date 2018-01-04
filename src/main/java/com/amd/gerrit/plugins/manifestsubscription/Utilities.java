@@ -21,16 +21,20 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Maps;
 import com.google.gerrit.reviewdb.client.Project;
+import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.extensions.events.GitReferenceUpdated;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.git.MetaDataUpdate;
+import com.google.gerrit.server.git.TagCache;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.inject.Provider;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.RefUpdate;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -78,7 +82,9 @@ public class Utilities {
 
   static ObjectId updateManifest(GitRepositoryManager gitRepoManager,
                              MetaDataUpdate.Server metaDataUpdateFactory,
+                             TagCache tagCache,
                              GitReferenceUpdated gitRefUpdated,
+                             Provider<IdentifiedUser> identifiedUser,
                              String projectName, String refName,
                              Manifest manifest, String manifestSrc,
                              String extraCommitMsg,
@@ -125,8 +131,19 @@ public class Utilities {
       if (!commit.toObjectId().equals(commitId) &&
               commit.getShortMessage().length() == 40) {
         Git git = new Git(repo);
-        git.tag().setObjectId(commit).setName(
-                "snapshot/" + commit.getShortMessage()).call();
+        String tagName = "snapshot/" + commit.getShortMessage();
+        Ref result = git.tag().setObjectId(commit)
+                .setName(tagName)
+                .setAnnotated(true)
+                .call();
+        tagCache.updateFastForward(
+                p, "refs/tags/" + tagName, ObjectId.zeroId(), result.getObjectId());
+        gitRefUpdated.fire(
+                p,
+                "refs/tags/" + tagName,
+                ObjectId.zeroId(),
+                result.getObjectId(),
+                identifiedUser.get().getAccount());
       }
       return commit.getId();
     } else {
@@ -162,7 +179,9 @@ public class Utilities {
   static Manifest createNewManifestFromBase(
           GitRepositoryManager gitRepoManager,
           MetaDataUpdate.Server metaDataUpdateFactory,
+          TagCache tagCache,
           GitReferenceUpdated gitRefUpdated,
+          Provider<IdentifiedUser> identifiedUser,
           String srcManifestRepo, String srcManifestCommitish,
           String manifestRepo, String manifestBranch, String manifestPath,
           String newRef,
@@ -215,8 +234,8 @@ public class Utilities {
       String shortBranch = manifestBranch.replaceFirst("^refs/heads/(.*)", "$1");
 
       ObjectId oid = Utilities.updateManifest(
-          gitRepoManager, metaDataUpdateFactory, gitRefUpdated,
-          srcManifestRepo,
+              gitRepoManager, metaDataUpdateFactory, tagCache,
+              gitRefUpdated, identifiedUser, srcManifestRepo,
           ManifestSubscription.STORE_BRANCH_PREFIX + shortBranch + "/" + manifestPath,
           manifest, manifestRepo, "Manifest branched", srcManifestCommitish);
 
@@ -306,7 +325,9 @@ public class Utilities {
 
   static void branchManifest(GitRepositoryManager gitRepoManager,
                              MetaDataUpdate.Server metaDataUpdateFactory,
+                             TagCache tagCache,
                              GitReferenceUpdated gitRefUpdated,
+                             Provider<IdentifiedUser> identifiedUser,
                              String manifestRepo, String manifestCommitish,
                              String manifestPath, String newBranch,
                              String newManifestRepo,
@@ -323,13 +344,13 @@ public class Utilities {
                                         newBranch, gitRefUpdated);
 
       if (newManifestBranch != null &&
-          newManifestPath != null &&
-          newManifestRepo != null) {
+              newManifestPath != null &&
+              newManifestRepo != null) {
         createNewManifestFromBase(
-            gitRepoManager, metaDataUpdateFactory, gitRefUpdated,
-            manifestRepo, manifestCommitish,
-            newManifestRepo, newManifestBranch, newManifestPath,
-            newBranch, createSnapShotBranch, manifest);
+                gitRepoManager, metaDataUpdateFactory, tagCache, gitRefUpdated,
+                identifiedUser, manifestRepo, manifestCommitish,
+                newManifestRepo, newManifestBranch, newManifestPath,
+                newBranch, createSnapShotBranch, manifest);
       }
 
     } catch (IOException | ConfigInvalidException | ManifestReadException |

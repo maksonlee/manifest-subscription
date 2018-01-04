@@ -15,10 +15,13 @@
 package com.amd.gerrit.plugins.manifestsubscription;
 
 import com.google.gerrit.extensions.annotations.Export;
+import com.google.gerrit.server.IdentifiedUser;
 import com.google.gerrit.server.extensions.events.GitReferenceUpdated;
 import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.git.MetaDataUpdate;
+import com.google.gerrit.server.git.TagCache;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 import javax.servlet.http.HttpServlet;
@@ -38,7 +41,13 @@ public class BranchManifestServlet extends HttpServlet {
   private MetaDataUpdate.Server metaDataUpdateFactory;
 
   @Inject
+  private TagCache tagCache;
+
+  @Inject
   private GitReferenceUpdated gitRefUpdated;
+
+  @Inject
+  private Provider<IdentifiedUser> identifiedUser;
 
   protected void doPost(HttpServletRequest req, HttpServletResponse res)
                                                             throws IOException {
@@ -66,7 +75,8 @@ public class BranchManifestServlet extends HttpServlet {
       }
 
       Utilities.branchManifest(
-          gitRepoManager, metaDataUpdateFactory, gitRefUpdated,
+          gitRepoManager, metaDataUpdateFactory, tagCache, gitRefUpdated,
+          identifiedUser,
           input.get("manifest-repo")[0],
           input.get("manifest-commit-ish")[0],
           input.get("manifest-path")[0],
