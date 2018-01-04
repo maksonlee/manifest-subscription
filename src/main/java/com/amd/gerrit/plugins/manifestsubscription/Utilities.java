@@ -131,7 +131,7 @@ public class Utilities {
       if (!commit.toObjectId().equals(commitId) &&
               commit.getShortMessage().length() == 40) {
         Git git = new Git(repo);
-        String tagName = "snapshot/" + commit.getShortMessage();
+        String tagName = "snapshot/" + commit.getName();
         Ref result = git.tag().setObjectId(commit)
                 .setName(tagName)
                 .setAnnotated(true)
