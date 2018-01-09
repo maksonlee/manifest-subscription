@@ -32,6 +32,7 @@ class Module extends AbstractModule {
               @Override
               protected void configure() {
                 get(BRANCH_KIND, "manifest").to(BranchManifest.class);
+                get(BRANCH_KIND, "manifestlog").to(BranchManifestLog.class);
               }
             });
     requestStaticInjection(ManifestSubscriptionConfig.class);
