@@ -17,13 +17,23 @@ package com.amd.gerrit.plugins.manifestsubscription;
 import com.google.gerrit.extensions.events.GitReferenceUpdatedListener;
 import com.google.gerrit.extensions.events.LifecycleListener;
 import com.google.gerrit.extensions.registration.DynamicSet;
+import com.google.gerrit.extensions.restapi.RestApiModule;
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
+
+import static com.google.gerrit.server.project.BranchResource.BRANCH_KIND;
 
 class Module extends AbstractModule {
 
   @Override
   protected void configure() {
+    install(
+            new RestApiModule() {
+              @Override
+              protected void configure() {
+                get(BRANCH_KIND, "manifest").to(BranchManifest.class);
+              }
+            });
     requestStaticInjection(ManifestSubscriptionConfig.class);
 
     bind(ManifestSubscription.class).in(Scopes.SINGLETON);
