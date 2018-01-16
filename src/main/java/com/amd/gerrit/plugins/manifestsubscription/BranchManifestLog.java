@@ -8,11 +8,13 @@ import com.google.gerrit.server.git.GitRepositoryManager;
 import com.google.gerrit.server.project.BranchResource;
 import com.google.inject.Inject;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.LogCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.TreeRevFilter;
 import org.kohsuke.args4j.Option;
 
 import java.io.IOException;
@@ -25,6 +27,7 @@ import java.util.List;
 public class BranchManifestLog implements RestReadView<BranchResource> {
     private String since;
     private String until;
+    private boolean noMerges;
 
     @Option(
             name = "--since",
@@ -43,6 +46,14 @@ public class BranchManifestLog implements RestReadView<BranchResource> {
         this.until = until;
     }
 
+    @Option(
+            name = "--no-merges",
+            metaVar = "BOOLEAN"
+    )
+    public void setNoMerges(boolean noMerges) {
+        this.noMerges = noMerges;
+    }
+
     private final GitRepositoryManager gitManager;
 
     @Inject
@@ -58,6 +69,7 @@ public class BranchManifestLog implements RestReadView<BranchResource> {
         try {
             dSince = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(since);
             dUntil = until == null ? new Date() : new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(until);
+            System.out.println(noMerges);
         } catch (ParseException e) {
             throw new BadRequestException(e.getMessage());
         }
@@ -104,7 +116,11 @@ public class BranchManifestLog implements RestReadView<BranchResource> {
 
         if (commit.getParentCount() == 2) {
             Git git = new Git(repo);
-            Iterable<RevCommit> commits = git.log().addRange(commit.getParents()[0], commit).call();
+            LogCommand logCommand = git.log();
+            if (noMerges) {
+                logCommand.setRevFilter(TreeRevFilter.NO_MERGES);
+            }
+            Iterable<RevCommit> commits = logCommand.addRange(commit.getParents()[0], commit).call();
             for (RevCommit c : commits) {
                 result.add(new CommitInfo(project, c.getName(), c.getFullMessage()));
             }
